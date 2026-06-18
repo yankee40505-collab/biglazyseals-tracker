@@ -26,10 +26,9 @@ SLOWDOWN_VIEWS = 1000
 
 
 def fetch_windsor_data():
-    url = "https://api.windsor.ai/all"
+    url = "https://connectors.windsor.ai/instagram"
     params = {
         "api_key": WINDSOR_API_KEY,
-        "connector": "instagram",
         "accounts": IG_ACCOUNT_ID,
         "date_preset": "last_30dT",
         "fields": ",".join(FIELDS),
