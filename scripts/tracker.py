@@ -24,10 +24,10 @@ IG_FIELDS = [
 ]
 
 YT_FIELDS = [
-    "published_at", "video_title", "video_description",
-    "views", "likes", "comments", "shares",
+    "published_at", "video_title", "views", "likes", "comments", "shares",
     "average_view_duration", "average_view_percentage",
-    "subscribers_gained", "subscribers_lost", "videourl"
+    "subscribers_gained", "subscribers_lost", "videourl",
+    "creator_content_type"
 ]
 
 
@@ -70,9 +70,14 @@ def get_latest_ig_episode(reels, keyword):
     return max(matches, key=lambda x: x.get("timestamp", ""), default=None)
 
 
-def get_latest_yt_video(data):
+def get_latest_yt_shorts(data):
+    # 優先找 Shorts
+    shorts = [d for d in data if d.get("creator_content_type") == "shorts" and d.get("video_title")]
+    if shorts:
+        return max(shorts, key=lambda x: x.get("published_at", ""), default=None), True
+    # 沒有 Shorts 就退回最新影片
     videos = [d for d in data if d.get("video_title")]
-    return max(videos, key=lambda x: x.get("published_at", ""), default=None)
+    return max(videos, key=lambda x: x.get("published_at", ""), default=None), False
 
 
 def detect_ig_slowdown(ep):
@@ -144,7 +149,7 @@ def ig_card(ep, series_name, emoji):
     </div>"""
 
 
-def yt_card(ep):
+def yt_card(ep, is_shorts):
     if not ep:
         return "<p style='color:#888;font-size:13px;'>（YouTube：本月尚無資料）</p>"
 
@@ -167,6 +172,7 @@ def yt_card(ep):
     mins = avg_dur // 60
     secs = avg_dur % 60
     avg_dur_str = f"{mins}:{secs:02d}"
+    type_label = "YouTube Shorts 最新" if is_shorts else "YouTube 最新影片"
 
     def cell(label, val):
         return f"""<td style="padding:7px 8px;background:#F5F5F3;border-radius:6px;
@@ -178,7 +184,7 @@ def yt_card(ep):
     return f"""
     <div style="background:#f9f8f6;border-radius:10px;padding:16px;margin-bottom:16px;">
         <div style="margin-bottom:8px;">
-            <span style="background:#FFE8E8;color:#C00;font-size:11px;padding:2px 8px;border-radius:999px;">▶ YouTube 最新影片</span>
+            <span style="background:#FFE8E8;color:#C00;font-size:11px;padding:2px 8px;border-radius:999px;">▶ {type_label}</span>
             <span style="font-size:11px;color:#888;margin-left:8px;">{dt_str} 發布</span>
         </div>
         <p style="font-size:13px;font-weight:500;color:#333;margin:0 0 12px;">{title}</p>
@@ -213,7 +219,7 @@ def build_email(xl, sy, yt):
   <p style="font-size:13px;font-weight:500;color:#5F5E5A;margin:16px 0 8px;">🌙 深夜選片指南（最新集數）</p>
   {sy}
   <hr style="border:none;border-top:0.5px solid #D3D1C7;margin:16px 0;">
-  <p style="font-size:13px;font-weight:500;color:#5F5E5A;margin:0 0 8px;">YouTube 最新影片</p>
+  <p style="font-size:13px;font-weight:500;color:#5F5E5A;margin:0 0 8px;">YouTube Shorts</p>
   {yt}
   <hr style="border:none;border-top:0.5px solid #D3D1C7;margin:20px 0 10px;">
   <p style="font-size:11px;color:#aaa;margin:0;">資料來源：Windsor.ai · 自動排程每晚 22:30（台灣時間）</p>
@@ -240,13 +246,13 @@ def main():
     sy_ep   = get_latest_ig_episode(reels, "深夜選片")
 
     print("Fetching YouTube data...")
-    yt_data = fetch_yt_data()
-    yt_ep   = get_latest_yt_video(yt_data)
+    yt_data  = fetch_yt_data()
+    yt_ep, is_shorts = get_latest_yt_shorts(yt_data)
 
     html = build_email(
         ig_card(xl_ep, "心靈電影院", "💘"),
         ig_card(sy_ep, "深夜選片指南", "🌙"),
-        yt_card(yt_ep)
+        yt_card(yt_ep, is_shorts)
     )
     send_email(html)
     print("Done.")
