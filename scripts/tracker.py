@@ -42,7 +42,7 @@ def fetch_ig_data():
                 "date_preset": "last_90dT",
                 "fields": ",".join(IG_FIELDS),
             },
-            timeout=30,
+            timeout=90,
         )
         r.raise_for_status()
         return r.json().get("data", [])
