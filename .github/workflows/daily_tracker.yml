@@ -1,30 +1,26 @@
-name: Daily IG Tracker
+name: Daily IG & YouTube Tracker
 
 on:
   schedule:
-   - cron: '0 13 * * *'
+    - cron: '0 13 * * *'   # UTC 13:00 = 台灣時間 21:00
   workflow_dispatch:
 
 jobs:
   track:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install requests anthropic
+        run: pip install requests
 
       - name: Run tracker
         env:
           WINDSOR_API_KEY: ${{ secrets.WINDSOR_API_KEY }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
-          RECIPIENT_EMAIL: biglazyseals@gmail.com
         run: python scripts/tracker.py
