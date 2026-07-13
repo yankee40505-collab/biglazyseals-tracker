@@ -97,4 +97,66 @@ def ig_card(ep, series_name, emoji):
             <div style="font-size:{sz};font-weight:500;color:{vc};">{val}</div></td>"""
 
     sp = '<td style="width:4px"></td>'
-    return
+    return f"""
+    <div style="background:#f9f8f6;border-radius:10px;padding:16px;margin-bottom:16px;">
+        <div style="margin-bottom:8px;">
+            <span style="background:#E1F5EE;color:#0F6E56;font-size:11px;padding:2px 8px;border-radius:999px;">{emoji} {series_name}</span>
+            <span style="font-size:11px;color:#888;margin-left:8px;">{dt_str} 發布</span>
+        </div>
+        <p style="font-size:12px;color:#555;margin:0 0 12px;">{caption}…</p>
+        {slow_html}
+        <table style="width:100%;border-collapse:separate;border-spacing:4px 0;">
+            <tr>{cell("觀看次數",f"{views:,}",hi=True)}{sp}{cell("觸及人數",f"{reach:,}")}{sp}{cell("儲存",f"{saved:,}")}{sp}{cell("分享",f"{shares:,}")}</tr>
+        </table>
+        <table style="width:100%;border-collapse:separate;border-spacing:4px 0;margin-top:6px;">
+            <tr>{cell("按讚",f"{likes:,}")}{sp}{cell("留言",f"{comments:,}")}{sp}{cell("總互動",f"{interact:,}")}{sp}{cell("平均觀看",f"{avg_w} 秒")}</tr>
+        </table>
+        <p style="margin:10px 0 0;font-size:12px;"><a href="{link}" style="color:#0F6E56;">在 Instagram 查看 →</a></p>
+    </div>"""
+
+def build_email(xl, sy):
+    now_tw = datetime.now(TW).strftime("%Y/%m/%d %H:%M")
+    return f"""<!DOCTYPE html>
+<html><head><meta charset="utf-8"></head>
+<body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+             max-width:600px;margin:0 auto;padding:20px;background:#fff;">
+  <span style="background:#E1F5EE;color:#0F6E56;font-size:11px;padding:3px 10px;border-radius:999px;">@biglazyseals · 每日追蹤</span>
+  <p style="font-size:21px;font-weight:500;color:#2C2C2A;margin:8px 0 4px;">Instagram Reels 數據報告</p>
+  <p style="font-size:12px;color:#888;margin:0 0 16px;">報告時間：{now_tw}（台灣時間）</p>
+  <hr style="border:none;border-top:0.5px solid #D3D1C7;margin-bottom:16px;">
+  <p style="font-size:13px;font-weight:500;color:#5F5E5A;margin:0 0 8px;">💘 心靈電影院（最新集數）</p>
+  {xl}
+  <p style="font-size:13px;font-weight:500;color:#5F5E5A;margin:16px 0 8px;">🌙 深夜選片指南（最新集數）</p>
+  {sy}
+  <hr style="border:none;border-top:0.5px solid #D3D1C7;margin:20px 0 10px;">
+  <p style="font-size:11px;color:#aaa;margin:0;">資料來源：Instagram Graph API · 自動排程每晚 21:00（台灣時間）</p>
+</body></html>"""
+
+def send_email(html):
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = f"📊 @biglazyseals 每日數據 {datetime.now(TW).strftime('%m/%d')}"
+    msg["From"]    = GMAIL_USER
+    msg["To"]      = RECIPIENT_EMAIL
+    msg.attach(MIMEText(html, "html", "utf-8"))
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+        server.login(GMAIL_USER, GMAIL_APP_PASSWORD)
+        server.sendmail(GMAIL_USER, RECIPIENT_EMAIL, msg.as_string())
+    print("Email sent.")
+
+def main():
+    print("Fetching Instagram data...")
+    reels = fetch_ig_reels()
+    print(f"Found {len(reels)} reels.")
+
+    xl_ep = get_latest_episode(reels, "心靈電影院")
+    sy_ep = get_latest_episode(reels, "深夜選片")
+
+    html = build_email(
+        ig_card(xl_ep, "心靈電影院", "💘"),
+        ig_card(sy_ep, "深夜選片指南", "🌙"),
+    )
+    send_email(html)
+    print("Done.")
+
+if __name__ == "__main__":
+    main()
