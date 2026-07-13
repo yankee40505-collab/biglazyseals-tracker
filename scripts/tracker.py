@@ -25,7 +25,7 @@ def fetch_ig_reels():
     r = requests.get(url, params=params, timeout=30)
     r.raise_for_status()
     items = r.json().get("data", [])
-    reels = [i for i in items if i.get("media_type") == "VIDEO"]
+    reels = [i for i in items if i.get("media_type") in ("VIDEO", "REELS")]
 
     results = []
     for reel in reels[:10]:
