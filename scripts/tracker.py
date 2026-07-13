@@ -148,8 +148,8 @@ def main():
     reels = fetch_ig_reels()
     print(f"Found {len(reels)} reels.")
 
-    xl_ep = get_latest_episode(reels, "心靈電影院")
-    sy_ep = get_latest_episode(reels, "深夜選片")
+    xl_ep = get_latest_episode(reels, "大懶豹心靈電影院")
+    sy_ep = get_latest_episode(reels, "大懶豹深夜選片")
 
     html = build_email(
         ig_card(xl_ep, "心靈電影院", "💘"),
