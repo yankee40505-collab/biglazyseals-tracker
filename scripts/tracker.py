@@ -146,7 +146,7 @@ def send_email(html):
 def main():
     print("Fetching Instagram data...")
     reels = fetch_ig_reels()
-    print(f"Found {len(reels)} reels.")
+    print(f"Raw items: {[(i.get('id'), i.get('media_type')) for i in items]}")
 
     xl_ep = get_latest_episode(reels, "大懶豹心靈電影院")
     sy_ep = get_latest_episode(reels, "大懶豹深夜選片")
