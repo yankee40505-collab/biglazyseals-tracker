@@ -34,11 +34,12 @@ def fetch_ig_reels():
         mid = reel["id"]
         ins_url = f"https://graph.facebook.com/v25.0/{mid}/insights"
         ins_params = {
-            "metric": "plays,reach,saved,shares,comments,likes,total_interactions,avg_watch_time",
+            "metric": "views,reach,saved,shares,comments,likes,total_interactions,ig_reels_avg_watch_time",
             "access_token": META_ACCESS_TOKEN,
         }
         ins_r = requests.get(ins_url, params=ins_params, timeout=30)
         if ins_r.status_code != 200:
+            print(f"Insights error for {mid}: {ins_r.status_code} {ins_r.text[:200]}")
             continue
         ins_data = {m["name"]: m["values"][0]["value"] for m in ins_r.json().get("data", [])}
         reel.update(ins_data)
