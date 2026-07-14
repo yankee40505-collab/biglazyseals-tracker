@@ -25,7 +25,9 @@ def fetch_ig_reels():
     r = requests.get(url, params=params, timeout=30)
     r.raise_for_status()
     items = r.json().get("data", [])
+    print(f"Raw items: {[(i.get('id'), i.get('media_type')) for i in items]}")
     reels = [i for i in items if i.get("media_type") in ("VIDEO", "REELS")]
+    print(f"Filtered reels: {len(reels)}")
 
     results = []
     for reel in reels[:10]:
@@ -146,7 +148,7 @@ def send_email(html):
 def main():
     print("Fetching Instagram data...")
     reels = fetch_ig_reels()
-    print(f"Raw items: {[(i.get('id'), i.get('media_type')) for i in items]}")
+    print(f"Found {len(reels)} reels.")
 
     xl_ep = get_latest_episode(reels, "大懶豹心靈電影院")
     sy_ep = get_latest_episode(reels, "大懶豹深夜選片")
