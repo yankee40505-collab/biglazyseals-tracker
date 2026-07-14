@@ -57,7 +57,7 @@ def detect_slowdown(ep):
     try:
         post_time = datetime.fromisoformat(ts.replace("Z", "+00:00"))
         days_old = (datetime.now(timezone.utc) - post_time).days
-        views = int(ep.get("plays") or 0)
+        views = int(ep.get("views") or 0)
         if days_old >= SLOWDOWN_DAYS and views < SLOWDOWN_VIEWS:
             return True, f"貼文已 {days_old} 天，觀看停滯在 {views:,}"
     except Exception:
@@ -69,14 +69,14 @@ def ig_card(ep, series_name, emoji):
         return f"<p style='color:#888;font-size:13px;'>（{series_name}：本月尚無資料）</p>"
 
     caption  = (ep.get("caption") or "")[:80].replace("\n", " ")
-    views    = int(ep.get("plays") or 0)
+    views    = int(ep.get("views") or 0)
     reach    = int(ep.get("reach") or 0)
     likes    = int(ep.get("likes") or 0)
     comments = int(ep.get("comments") or 0)
     saved    = int(ep.get("saved") or 0)
     shares   = int(ep.get("shares") or 0)
     interact = int(ep.get("total_interactions") or 0)
-    avg_w    = round((ep.get("avg_watch_time") or 0) / 1000, 1)
+    avg_w    = round((ep.get("ig_reels_avg_watch_time") or 0) / 1000, 1)
     link     = ep.get("permalink", "#")
     ts       = ep.get("timestamp", "")
     try:
